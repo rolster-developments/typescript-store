@@ -1,6 +1,6 @@
 {
   "name": "@rolster/typescript-store",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Library that allows you to manage the status of applications.",
   "module": "dist/esm/store.js",
   "main": "dist/cjs/lib.cjs.js",

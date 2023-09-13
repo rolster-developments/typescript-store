@@ -29,7 +29,7 @@ class StateHandler<T extends State> {
   }
 
   public select<V>(selector: (value: T) => V): V {
-    return selector({ ...this.subject.value });
+    return selector(this.subject.value);
   }
 
   public observe(): Observable<T> {
