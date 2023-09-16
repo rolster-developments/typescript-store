@@ -1,4 +1,4 @@
-import { deepFreeze } from '@rolster/typescript-utils';
+import { deepFreeze } from '@rolster/helpers-advanced';
 import { BehaviorSubject, Observable, Subscription, map } from 'rxjs';
 
 type State = Record<string, any>;
