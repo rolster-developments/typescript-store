@@ -1,13 +1,13 @@
 import { deepFreeze } from '@rolster/helpers-advanced';
 import { BehaviorSubject, Observable, Subscription, map } from 'rxjs';
 
-type State = Record<string, any>;
+type UnSubscription = () => void;
 
-class StateHandler<T extends State> {
+class State<T extends LiteralObject> {
   private subject: BehaviorSubject<T>;
 
-  constructor(private initialValue: T) {
-    this.subject = new BehaviorSubject(deepFreeze(this.initialValue));
+  constructor(private value: T) {
+    this.subject = new BehaviorSubject(deepFreeze(this.value));
   }
 
   public getCurrent(): T {
@@ -15,7 +15,7 @@ class StateHandler<T extends State> {
   }
 
   public reset(): void {
-    this.reduce(() => this.initialValue);
+    this.reduce(() => this.value);
   }
 
   public reduce(reducer: (value: T) => T): boolean {
@@ -41,22 +41,22 @@ class StateHandler<T extends State> {
   }
 }
 
-export abstract class AbstractStore<T extends State> {
-  abstract getCurrent(): T;
+export abstract class AbstractStore<T extends LiteralObject> {
+  abstract currentState: T;
 
   abstract reset(): void;
 
-  abstract subscribe(subscriber: (value: T) => void): Subscription;
+  abstract subscribe(subscriber: (value: T) => void): UnSubscription;
 }
 
-export class Store<T extends State> implements AbstractStore<T> {
-  private state: StateHandler<T>;
+export class Store<T extends LiteralObject> implements AbstractStore<T> {
+  private state: State<T>;
 
   constructor(value: T) {
-    this.state = new StateHandler(value);
+    this.state = new State(value);
   }
 
-  public getCurrent(): T {
+  public get currentState(): T {
     return this.state.getCurrent();
   }
 
@@ -64,8 +64,10 @@ export class Store<T extends State> implements AbstractStore<T> {
     this.state.reset();
   }
 
-  public subscribe(subscriber: (value: T) => void): Subscription {
-    return this.state.subscribe(subscriber);
+  public subscribe(subscriber: (value: T) => void): UnSubscription {
+    const subscription = this.state.subscribe(subscriber);
+
+    return () => subscription.unsubscribe();
   }
 
   protected reduce(reducer: (value: T) => T): boolean {
