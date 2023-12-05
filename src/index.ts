@@ -1,7 +1,7 @@
 import { deepFreeze } from '@rolster/helpers-advanced';
 import { BehaviorSubject, Observable, Subscription, map } from 'rxjs';
 
-type UnSubscription = () => void;
+export type UnSubscriber = () => void;
 
 class State<T extends LiteralObject> {
   private subject: BehaviorSubject<T>;
@@ -46,7 +46,7 @@ export abstract class AbstractStore<T extends LiteralObject> {
 
   abstract reset(): void;
 
-  abstract subscribe(subscriber: (value: T) => void): UnSubscription;
+  abstract subscribe(subscriber: (value: T) => void): UnSubscriber;
 }
 
 export class Store<T extends LiteralObject> implements AbstractStore<T> {
@@ -64,7 +64,7 @@ export class Store<T extends LiteralObject> implements AbstractStore<T> {
     this.state.reset();
   }
 
-  public subscribe(subscriber: (value: T) => void): UnSubscription {
+  public subscribe(subscriber: (value: T) => void): UnSubscriber {
     const subscription = this.state.subscribe(subscriber);
 
     return () => subscription.unsubscribe();
