@@ -1,0 +1,33 @@
+{
+  "name": "@rolster-docs/reactive-store",
+  "version": "1.0.0",
+  "description": "Documentation for package Reactive Store",
+  "license": "MIT",
+  "author": "Rolster Technology <rolster.developments@gmail.com>",
+  "contributors": [
+    {
+      "name": "Daniel Andrés Castillo Pedroza",
+      "email": "ing.dacastillop@gmail.com"
+    }
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build && next export",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^13.0.6",
+    "nextra": "latest",
+    "nextra-theme-docs": "latest",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "18.11.10",
+    "typescript": "^4.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rolster-developments/typescript-store.git"
+  }
+}
