@@ -8,7 +8,7 @@ class State<T extends LiteralObject> {
     this.subject = new BehaviorSubject(deepFreeze(this.value));
   }
 
-  public getCurrent(): T {
+  public getCurrent(): Readonly<T> {
     return this.subject.value;
   }
 
@@ -40,7 +40,7 @@ class State<T extends LiteralObject> {
 }
 
 export abstract class AbstractStore<T extends LiteralObject> {
-  abstract currentState: T;
+  abstract currentState: Readonly<T>;
 
   abstract reset(): void;
 
@@ -54,7 +54,7 @@ export class Store<T extends LiteralObject> implements AbstractStore<T> {
     this.state = new State(value);
   }
 
-  public get currentState(): T {
+  public get currentState(): Readonly<T> {
     return this.state.getCurrent();
   }
 
