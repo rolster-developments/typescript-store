@@ -1,4 +1,4 @@
-import { deepFreeze } from '@rolster/helpers-advanced';
+import { deepFreeze } from '@rolster/commons';
 import { BehaviorSubject, Observable, Subscription, map } from 'rxjs';
 
 class State<T extends LiteralObject> {
@@ -65,7 +65,9 @@ export class Store<T extends LiteralObject> implements AbstractStore<T> {
   public subscribe(subscriber: (value: T) => void): Unsubscription {
     const subscription = this.state.subscribe(subscriber);
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }
 
   protected reduce(reducer: (value: T) => T): boolean {
