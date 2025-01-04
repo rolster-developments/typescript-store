@@ -40,7 +40,7 @@ class State<T extends LiteralObject> {
 }
 
 export abstract class AbstractStore<T extends LiteralObject> {
-  abstract currentState: Readonly<T>;
+  abstract state: Readonly<T>;
 
   abstract reset(): void;
 
@@ -48,22 +48,22 @@ export abstract class AbstractStore<T extends LiteralObject> {
 }
 
 export class Store<T extends LiteralObject> implements AbstractStore<T> {
-  private state: State<T>;
+  private managerState: State<T>;
 
   constructor(value: T) {
-    this.state = new State(value);
+    this.managerState = new State(value);
   }
 
-  public get currentState(): Readonly<T> {
-    return this.state.getCurrent();
+  public get state(): Readonly<T> {
+    return this.managerState.getCurrent();
   }
 
   public reset(): void {
-    this.state.reset();
+    this.managerState.reset();
   }
 
   public subscribe(subscriber: (value: T) => void): Unsubscription {
-    const subscription = this.state.subscribe(subscriber);
+    const subscription = this.managerState.subscribe(subscriber);
 
     return () => {
       subscription.unsubscribe();
@@ -71,14 +71,14 @@ export class Store<T extends LiteralObject> implements AbstractStore<T> {
   }
 
   protected reduce(reducer: (value: T) => T): boolean {
-    return this.state.reduce(reducer);
+    return this.managerState.reduce(reducer);
   }
 
   protected select<V>(selector: (value: T) => V): V {
-    return this.state.select(selector);
+    return this.managerState.select(selector);
   }
 
   protected observe<V>(observer: (value: T) => V): Observable<V> {
-    return this.state.observe().pipe(map((state) => observer(state)));
+    return this.managerState.observe().pipe(map((state) => observer(state)));
   }
 }
