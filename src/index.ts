@@ -1,11 +1,11 @@
-import { deepFreeze } from '@rolster/commons';
+import { freeze } from '@rolster/commons';
 import { BehaviorSubject, Observable, Subscription, map } from 'rxjs';
 
 class State<T extends LiteralObject> {
   private subject: BehaviorSubject<T>;
 
   constructor(private value: T) {
-    this.subject = new BehaviorSubject(deepFreeze(this.value));
+    this.subject = new BehaviorSubject(freeze(this.value));
   }
 
   public getCurrent(): Readonly<T> {
@@ -18,7 +18,7 @@ class State<T extends LiteralObject> {
 
   public reduce(reducer: (value: T) => T): boolean {
     try {
-      this.subject.next(deepFreeze(reducer(this.subject.value)));
+      this.subject.next(freeze(reducer(this.subject.value)));
 
       return true;
     } catch {
@@ -48,22 +48,22 @@ export abstract class AbstractStore<T extends LiteralObject> {
 }
 
 export class Store<T extends LiteralObject> implements AbstractStore<T> {
-  private managerState: State<T>;
+  private _state: State<T>;
 
   constructor(value: T) {
-    this.managerState = new State(value);
+    this._state = new State(value);
   }
 
   public get state(): Readonly<T> {
-    return this.managerState.getCurrent();
+    return this._state.getCurrent();
   }
 
   public reset(): void {
-    this.managerState.reset();
+    this._state.reset();
   }
 
   public subscribe(subscriber: (value: T) => void): Unsubscription {
-    const subscription = this.managerState.subscribe(subscriber);
+    const subscription = this._state.subscribe(subscriber);
 
     return () => {
       subscription.unsubscribe();
@@ -71,14 +71,14 @@ export class Store<T extends LiteralObject> implements AbstractStore<T> {
   }
 
   protected reduce(reducer: (value: T) => T): boolean {
-    return this.managerState.reduce(reducer);
+    return this._state.reduce(reducer);
   }
 
   protected select<V>(selector: (value: T) => V): V {
-    return this.managerState.select(selector);
+    return this._state.select(selector);
   }
 
   protected observe<V>(observer: (value: T) => V): Observable<V> {
-    return this.managerState.observe().pipe(map((state) => observer(state)));
+    return this._state.observe().pipe(map((state) => observer(state)));
   }
 }
