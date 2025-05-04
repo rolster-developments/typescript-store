@@ -1,24 +1,26 @@
-import { freeze } from '@rolster/commons';
-import { BehaviorSubject, Observable, Subscription, map } from 'rxjs';
+import { Observable, Observer, observable } from '@rolster/commons';
+
+export type Reducer<T> = (value: T) => T;
+export type Selector<T, V> = (value: T) => V;
 
 class State<T extends LiteralObject> {
-  private subject: BehaviorSubject<T>;
+  private observable: Observable<T>;
 
-  constructor(private value: T) {
-    this.subject = new BehaviorSubject(freeze(this.value));
+  constructor(private _value: T) {
+    this.observable = observable(this._value);
   }
 
-  public getCurrent(): Readonly<T> {
-    return this.subject.value;
+  public get value(): Readonly<T> {
+    return this.observable.state;
   }
 
   public reset(): void {
-    this.reduce(() => this.value);
+    this.reduce(() => this._value);
   }
 
-  public reduce(reducer: (value: T) => T): boolean {
+  public reduce(reducer: Reducer<T>): boolean {
     try {
-      this.subject.next(freeze(reducer(this.subject.value)));
+      this.observable.next(reducer(this.observable.state));
 
       return true;
     } catch {
@@ -26,25 +28,27 @@ class State<T extends LiteralObject> {
     }
   }
 
-  public select<V>(selector: (value: T) => V): V {
-    return selector(this.subject.value);
+  public select<V>(selector: Selector<T, V>): V {
+    return selector(this.observable.state);
   }
 
-  public observe(): Observable<T> {
-    return this.subject.asObservable();
+  public subscribe(observer: Observer<T>): Unsubscription {
+    return this.observable.subscribe(observer);
   }
 
-  public subscribe(subscriber: (value: T) => void): Subscription {
-    return this.observe().subscribe(subscriber);
+  public listen(observer: Observer<T>): Unsubscription {
+    return this.observable.listen(observer);
   }
 }
 
 export abstract class AbstractStore<T extends LiteralObject> {
   abstract state: Readonly<T>;
 
-  abstract reset(): void;
+  abstract subscribe(subscriber: Observer<T>): Unsubscription;
 
-  abstract subscribe(subscriber: (value: T) => void): Unsubscription;
+  abstract listen(subscriber: Observer<T>): Unsubscription;
+
+  abstract reset(): void;
 }
 
 export class Store<T extends LiteralObject> implements AbstractStore<T> {
@@ -55,30 +59,26 @@ export class Store<T extends LiteralObject> implements AbstractStore<T> {
   }
 
   public get state(): Readonly<T> {
-    return this._state.getCurrent();
+    return this._state.value;
+  }
+
+  public subscribe(subscriber: Observer<T>): Unsubscription {
+    return this._state.subscribe(subscriber);
+  }
+
+  public listen(subscriber: Observer<T>): Unsubscription {
+    return this._state.listen(subscriber);
   }
 
   public reset(): void {
     this._state.reset();
   }
 
-  public subscribe(subscriber: (value: T) => void): Unsubscription {
-    const subscription = this._state.subscribe(subscriber);
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }
-
-  protected reduce(reducer: (value: T) => T): boolean {
+  protected reduce(reducer: Reducer<T>): boolean {
     return this._state.reduce(reducer);
   }
 
-  protected select<V>(selector: (value: T) => V): V {
+  protected select<V>(selector: Selector<T, V>): V {
     return this._state.select(selector);
-  }
-
-  protected observe<V>(observer: (value: T) => V): Observable<V> {
-    return this._state.observe().pipe(map((state) => observer(state)));
   }
 }
