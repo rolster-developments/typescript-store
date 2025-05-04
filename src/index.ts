@@ -1,4 +1,10 @@
-import { Observable, Observer, observable } from '@rolster/commons';
+import {
+  Observable,
+  Observer,
+  clone,
+  freeze,
+  observable
+} from '@rolster/commons';
 
 export type Reducer<T> = (value: T) => T;
 export type Selector<T, V> = (value: T) => V;
@@ -6,8 +12,14 @@ export type Selector<T, V> = (value: T) => V;
 class State<T extends LiteralObject> {
   private observable: Observable<T>;
 
-  constructor(private _value: T) {
-    this.observable = observable(this._value);
+  private _value: T;
+
+  private _valueInitial: T;
+
+  constructor(value: T) {
+    this.observable = observable(value);
+    this._value = clone(value);
+    this._valueInitial = freeze(value);
   }
 
   public get value(): Readonly<T> {
@@ -15,12 +27,17 @@ class State<T extends LiteralObject> {
   }
 
   public reset(): void {
-    this.reduce(() => this._value);
+    this.observable.next(this._valueInitial);
+    this._value = clone(this._valueInitial);
   }
 
   public reduce(reducer: Reducer<T>): boolean {
     try {
-      this.observable.next(reducer(this.observable.state));
+      const value = reducer(this._value);
+
+      this._value = clone(value);
+
+      this.observable.next(reducer(value));
 
       return true;
     } catch {
@@ -29,7 +46,7 @@ class State<T extends LiteralObject> {
   }
 
   public select<V>(selector: Selector<T, V>): V {
-    return selector(this.observable.state);
+    return selector(clone(this._value));
   }
 
   public subscribe(observer: Observer<T>): Unsubscription {
