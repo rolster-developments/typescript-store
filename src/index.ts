@@ -1,52 +1,32 @@
-import {
-  Observable,
-  Observer,
-  clone,
-  freeze,
-  observable
-} from '@rolster/commons';
+import { Observable, Observer, freeze, observable } from '@rolster/commons';
 
-export type Reducer<T> = (value: T) => T;
-export type Selector<T, V> = (value: T) => V;
+export type Reducer<T> = (value: Readonly<T>) => T;
+export type Selector<T, V> = (value: Readonly<T>) => V;
 
 class State<T extends LiteralObject> {
   private observable: Observable<T>;
 
-  private _value: T;
-
-  private _valueInitial: T;
+  private _initial: T;
 
   constructor(value: T) {
     this.observable = observable(value);
-    this._value = clone(value);
-    this._valueInitial = freeze(value);
+    this._initial = freeze(value);
   }
 
   public get value(): Readonly<T> {
-    return this.observable.state;
+    return this.observable.value;
   }
 
   public reset(): void {
-    this.observable.next(this._valueInitial);
-    this._value = clone(this._valueInitial);
+    this.observable.next(this._initial);
   }
 
-  public reduce(reducer: Reducer<T>): boolean {
-    try {
-      const value = reducer(this._value);
-
-      this._value = clone(value);
-
-      this.observable.next(reducer(value));
-
-      return true;
-    } catch {
-      return false;
-    }
+  public reduce(reducer: Reducer<T>): void {
+    this.observable.next(reducer(this.observable.value));
   }
 
   public select<V>(selector: Selector<T, V>): V {
-    return selector(clone(this._value));
+    return selector(this.observable.value);
   }
 
   public subscribe(observer: Observer<T>): Unsubscription {
@@ -59,7 +39,7 @@ class State<T extends LiteralObject> {
 }
 
 export abstract class AbstractStore<T extends LiteralObject> {
-  abstract state: Readonly<T>;
+  abstract value: Readonly<T>;
 
   abstract subscribe(subscriber: Observer<T>): Unsubscription;
 
@@ -69,33 +49,33 @@ export abstract class AbstractStore<T extends LiteralObject> {
 }
 
 export class Store<T extends LiteralObject> implements AbstractStore<T> {
-  private _state: State<T>;
+  private state: State<T>;
 
   constructor(value: T) {
-    this._state = new State(value);
+    this.state = new State(value);
   }
 
-  public get state(): Readonly<T> {
-    return this._state.value;
+  public get value(): Readonly<T> {
+    return this.state.value;
   }
 
   public subscribe(subscriber: Observer<T>): Unsubscription {
-    return this._state.subscribe(subscriber);
+    return this.state.subscribe(subscriber);
   }
 
   public listen(subscriber: Observer<T>): Unsubscription {
-    return this._state.listen(subscriber);
+    return this.state.listen(subscriber);
   }
 
   public reset(): void {
-    this._state.reset();
+    this.state.reset();
   }
 
-  protected reduce(reducer: Reducer<T>): boolean {
-    return this._state.reduce(reducer);
+  protected reduce(reducer: Reducer<T>): void {
+    this.state.reduce(reducer);
   }
 
   protected select<V>(selector: Selector<T, V>): V {
-    return this._state.select(selector);
+    return this.state.select(selector);
   }
 }
