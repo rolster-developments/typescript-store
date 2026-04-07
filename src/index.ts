@@ -59,6 +59,10 @@ export class Store<T extends LiteralObject> implements AbstractStore<T> {
     return this.state.value;
   }
 
+  public setValue(value: Partial<T>): void {
+    this.state.reduce((state) => ({ ...state, ...value }));
+  }
+
   public subscribe(subscriber: Observer<T>): Unsubscription {
     return this.state.subscribe(subscriber);
   }
