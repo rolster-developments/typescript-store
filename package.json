@@ -1,6 +1,6 @@
 {
   "name": "@rolster/reactive-store",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "type": "module",
   "description": "Library that allows you to manage the status of applications.",
   "license": "MIT",
