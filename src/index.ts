@@ -1,4 +1,4 @@
-import { freeze, Observable, observable,Observer } from '@rolster/commons';
+import { freeze, Observable, observable, Observer } from '@rolster/commons';
 
 export type Reducer<T> = (value: Readonly<T>) => T;
 export type Selector<T, V> = (value: Readonly<T>) => V;
