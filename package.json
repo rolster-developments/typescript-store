@@ -37,7 +37,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@rolster/commons": "^4.1.2"
+    "@rolster/commons": "^4.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
